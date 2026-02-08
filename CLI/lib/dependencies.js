@@ -3,50 +3,38 @@ import path from "path";
 
 export async function installDependencies(
   projectName,
-  packageManager,
-  language
+  packageManager
 ) {
-  const dependencies = ["express", "cors", "dotenv", "nodemon"];
-  const devDependencies = [];
-
-  if (language === "TypeScript") {
-    devDependencies.push(
-      "typescript",
-      "ts-node",
-      "@types/node",
-      "@types/express",
-      "@types/cors"
-    );
-  }
-
   const basePath = path.join(process.cwd(), projectName);
 
-  const managers = {
-    npm: { install: "npm install", dev: "npm install -D" },
-    yarn: { install: "yarn add", dev: "yarn add -D" },
-    pnpm: { install: "pnpm add", dev: "pnpm add -D" },
-    bun: { install: "bun add", dev: "bun add -d" },
-  };
-
-  const installCmd = managers[packageManager].install;
-  const devInstallCmd = managers[packageManager].dev;
+  let installCommand;
+  switch (packageManager) {
+    case "npm":
+      installCommand = "npm install";
+      break;
+    case "yarn":
+      installCommand = "yarn install";
+      break;
+    case "pnpm":
+      installCommand = "pnpm install";
+      break;
+    case "bun":
+      installCommand = "bun install";
+      break;
+    default:
+      console.warn(`Gestor de paquetes desconocido: ${packageManager}. Usando npm install.`);
+      installCommand = "npm install";
+  }
 
   console.log(`📦 Instalando dependencias con ${packageManager}...`);
-
-  // Install regular dependencies
-  execSync(`${installCmd} ${dependencies.join(" ")}`, {
-    cwd: basePath,
-    stdio: "inherit",
-  });
-
-  // Install dev dependencies if any
-  if (devDependencies.length > 0) {
-    console.log(`🛠️ Instalando dependencias de desarrollo...`);
-    execSync(`${devInstallCmd} ${devDependencies.join(" ")}`, {
+  try {
+    execSync(installCommand, {
       cwd: basePath,
       stdio: "inherit",
     });
+    console.log("✅ Dependencias instaladas con éxito!");
+  } catch (error) {
+    console.error(`❌ Error al instalar las dependencias con ${packageManager}:`, error.message);
+    throw error; // Rethrow to be caught by the global handler in index.js
   }
-
-  console.log("✅ Dependencias instaladas con éxito!");
 }

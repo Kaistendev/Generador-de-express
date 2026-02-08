@@ -5,6 +5,18 @@ export async function askQuestions() {
   const projectName = await input({
     message: "Nombre del proyecto:",
     default: "my-express-app",
+    validate: (input) => {
+      if (input.trim() === "") {
+        return "El nombre del proyecto no puede estar vacío.";
+      }
+      // Basic validation for path traversal and invalid characters
+      // Allows alphanumeric, hyphens, and underscores. Prevents starting with '.' or '..'
+      const isValid = /^(?!(\.|\.\.)$)[a-zA-Z0-9_-]+$/.test(input);
+      if (!isValid) {
+        return "El nombre del proyecto solo puede contener letras, números, guiones y guiones bajos, y no puede ser '.' o '..'";
+      }
+      return true;
+    },
   });
 
   const language = await select({
